@@ -45,11 +45,13 @@ MODULE_PARM_DESC(cpulist, "List of CPUs (default all)");
 
 static unsigned int num_cpus;
 static atomic_t running;
+static atomic64_t cnt;
 
 static DECLARE_COMPLETION(ipistorm_done);
 
 static void do_nothing_ipi(void *dummy)
 {
+	atomic64_inc(&cnt);
 }
 
 static int ipistorm_thread(void *data)
@@ -149,6 +151,7 @@ out_free:
 static void __exit ipistorm_exit(void)
 {
 	wait_for_completion(&ipistorm_done);
+	pr_warn("Total IPI cnt : %llu\n", atomic64_read(&cnt));
 }
 
 module_init(ipistorm_init)
